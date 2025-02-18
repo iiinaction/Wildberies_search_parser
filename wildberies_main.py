@@ -2,9 +2,11 @@ import requests
 import re
 import csv
 from models import Items
-class ParseWb:
-    
-    def __init__(self, url:str):
+import json
+
+
+class ParseWb:  
+    def __init__(self, url:str):              # инициализирируем атрибуты(ссылку) класса с параметрами
         # self.__get_brand_id = self.__get_brand_id(url) # получаем id бренда
         self.params = {
     'ab_testing': 'false',
@@ -30,28 +32,39 @@ class ParseWb:
             response = requests.get('https://search.wb.ru/exactmatch/ru/common/v9/search', params=self.params, )
             i+=1
             items_info = Items.model_validate(response.json()["data"])
+            # with open('wildberries_data.json', 'w', encoding="utf-8") as file:
+            #     json.dump(items_info.json(), file, indent=4, ensure_ascii=False)
+
+            # Items(products=[Item(id=1, name='Xiaomi AX3000T', brand='Xiaomi'), 
+            #    Item(id=2, name='Samsung Router', brand='Samsung')])
+
             if not items_info.products:
+                break
+            if i == 3:
                 break
             self.__save_csv(items_info)
 
     def __create_csv(self):                                              # создаем csv файл
         with open('wildberries_data.csv', 'w', newline='', encoding="utf-8") as file:
             writer = csv.writer(file)                                    # создаем объект writer
-            writer.writerow(['id', 'название', 'бренд', 'цена', 'рейтинг' , 'в наличии'])    # записываем заголовки
+            writer.writerow(['id', 'название', 'бренд', 'цена', 'рейтинг' , 'в наличии'])   
     
-    def __save_csv(self, items):                                         # создаем csv файл
+    def __save_csv(self, items):                                         # сохраняем csv файл по столбцам полученным из parse
         with open('wildberries_data.csv', 'a', newline='', encoding="utf-8") as file:
             writer = csv.writer(file)
-            
+            my_string = "ax3000t".lower()  
             for product in items.products:
-                if product.name is not None:
+                if my_string in product.name.lower():
                     print(product.name)
                     writer.writerow([product.id,
                                     product.name,
                                     product.brand,
                                     product.price,
                                     product.rating,
-                                    product.volume,])   
+                                    product.volume,])
+                
+        
+                       
 
 if __name__ == '__main__':
     ParseWb('https://www.wildberries.ru/catalog/0/search.aspx?search=ax3000t+xiaomi+%D1%80%D0%BE%D1%83%D1%82%D0%B5%D1%80&targeturl=ST&xsearch=true').parse() # передаем ссылку на бренд

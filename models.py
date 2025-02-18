@@ -9,21 +9,19 @@ class Size(BaseModel):
 
 class Item(BaseModel):
     id: int
-    name: str # разрешаем пустое значение для названия товара  
+    name: str
     brand:str
     sizes: list[Size]
     rating: int
     volume: int
     
-    # @field_validator("name")
+    # @field_validator("name", mode="before")           #валидатор проверки на соотвествие тексту в поле name
     # @classmethod
     # def check_name(cls, value):
     #     my_string = "Xiaomi AX3000T"
     #     if my_string not in value:
-    #         return None  # Вместо ошибки возвращаем None (запись будет отброшена)
-    #     return value
-     
-
+    #         return None  # Принудительно выбрасываем исключение
+    #     return value     
     @property
     def price(self) -> Optional[float]:
         return self.sizes[0].price.total/100 if self.sizes else None
